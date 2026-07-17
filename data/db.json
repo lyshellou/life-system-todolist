@@ -1,0 +1,28 @@
+﻿{
+  "dimensions": [
+    { "id": "dim-health", "name": "健康", "icon": "heart", "color": "#346538", "bgColor": "#EDF3EC", "sortOrder": 1, "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "dim-work", "name": "工作", "icon": "briefcase", "color": "#1F6C9F", "bgColor": "#E1F3FE", "sortOrder": 2, "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "dim-study", "name": "学习", "icon": "book", "color": "#5B3E9F", "bgColor": "#EBE5FA", "sortOrder": 3, "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "dim-social", "name": "人际", "icon": "usersThree", "color": "#956400", "bgColor": "#FDF3DB", "sortOrder": 4, "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "dim-fun", "name": "娱乐", "icon": "gameController", "color": "#9F2F2D", "bgColor": "#FDEBEC", "sortOrder": 5, "createdAt": "2026-01-01T00:00:00.000Z" }
+  ],
+  "goals": [],
+  "milestones": [],
+  "todos": [],
+  "dailyActivity": [],
+  "karma": { "totalXp": 0, "level": 1 },
+  "streak": { "current": 0, "longest": 0, "lastDate": null },
+  "counter": { "todosCompleted": 0, "goalsCompleted": 0, "milestonesCompleted": 0 },
+  "achievements": [
+    { "id": "ach-first-todo", "name": "第一步", "description": "完成第 1 个待办", "icon": "flag", "conditionType": "todosCompleted", "conditionTarget": 1, "unlocked": false, "unlockedAt": null },
+    { "id": "ach-10-todos", "name": "渐入佳境", "description": "完成 10 个待办", "icon": "rocket", "conditionType": "todosCompleted", "conditionTarget": 10, "unlocked": false, "unlockedAt": null },
+    { "id": "ach-100-todos", "name": "任务大师", "description": "完成 100 个待办", "icon": "crown", "conditionType": "todosCompleted", "conditionTarget": 100, "unlocked": false, "unlockedAt": null },
+    { "id": "ach-streak-7", "name": "坚持一周", "description": "连续打卡 7 天", "icon": "fire", "conditionType": "streak", "conditionTarget": 7, "unlocked": false, "unlockedAt": null },
+    { "id": "ach-streak-30", "name": "势不可挡", "description": "连续打卡 30 天", "icon": "lightning", "conditionType": "streak", "conditionTarget": 30, "unlocked": false, "unlockedAt": null },
+    { "id": "ach-first-goal", "name": "小目标", "description": "完成第 1 个目标", "icon": "target", "conditionType": "goalsCompleted", "conditionTarget": 1, "unlocked": false, "unlockedAt": null },
+    { "id": "ach-5-goals", "name": "远见者", "description": "完成 5 个目标", "icon": "star", "conditionType": "goalsCompleted", "conditionTarget": 5, "unlocked": false, "unlockedAt": null },
+    { "id": "ach-first-milestone", "name": "里程碑", "description": "完成第 1 个里程碑", "icon": "medal", "conditionType": "milestonesCompleted", "conditionTarget": 1, "unlocked": false, "unlockedAt": null },
+    { "id": "ach-all-dimensions", "name": "平衡人生", "description": "在 5 个维度都有目标", "icon": "circlesFour", "conditionType": "allDimensions", "conditionTarget": 5, "unlocked": false, "unlockedAt": null },
+    { "id": "ach-perfect-day", "name": "高效日", "description": "同一天完成 5 个待办", "icon": "zap", "conditionType": "perfectDay", "conditionTarget": 5, "unlocked": false, "unlockedAt": null }
+  ]
+}
