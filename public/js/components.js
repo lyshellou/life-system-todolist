@@ -73,8 +73,8 @@ function renderGoalCard(g, dimColor) {
     ${g.description?`<div class="goal-card-desc">${ESC(g.description)}</div>`:""}
     <div class="goal-card-meta">
       <span>${msDone}/${msTotal} 里程碑</span>
-      ${g.todoCount?`<span>`${g.todoCount}</span>`:""}
-      ${g.targetDate?`<span>`${FMT(g.targetDate)}</span>`:""}
+      ${g.todoCount?'<span>'+g.todoCount+'</span>':""}
+      ${g.targetDate?'<span>'+FMT(g.targetDate)+'</span>':""}
     </div>
     ${msTotal>0?`<div class="goal-progress"><div class="progress-bar"><div class="progress-fill" style="width:${prog}%;background:${typeof dimColor==="string"?dimColor:"#10B981"}"></div></div></div>`:""}
   </div>`;
@@ -99,7 +99,6 @@ function renderMilestoneItem(m) {
 function renderAchCard(a) {
   if (a.unlocked) {
     return `<div class="ach-card unlocked">
-const ACH_ICONS = { flag:"1st", rocket:"10x", crown:"100x", fire:"7d", lightning:"30d", target:"Goal", star:"Star", medal:"Mstone", circlesFour:"All", zap:"Day" };
       <div class="ach-name">${ESC(a.name)}</div>
       <div class="ach-desc">${ESC(a.description)}</div>
       ${a.unlockedAt?`<div style="font-size:10px;color:var(--text-secondary);margin-top:6px">${FMT(a.unlockedAt)}</div>`:""}

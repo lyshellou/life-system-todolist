@@ -1,4 +1,4 @@
-﻿{
+{
   "dimensions": [
     { "id": "dim-health", "name": "健康", "icon": "heart", "color": "#346538", "bgColor": "#EDF3EC", "sortOrder": 1, "createdAt": "2026-01-01T00:00:00.000Z" },
     { "id": "dim-work", "name": "工作", "icon": "briefcase", "color": "#1F6C9F", "bgColor": "#E1F3FE", "sortOrder": 2, "createdAt": "2026-01-01T00:00:00.000Z" },

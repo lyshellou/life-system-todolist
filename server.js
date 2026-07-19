@@ -8,8 +8,27 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 
 // --- Data helpers ---
 function readDb() {
-  const raw = fs.readFileSync(DATA_FILE, "utf-8");
-  return JSON.parse(raw);
+  try {
+    const raw = fs.readFileSync(DATA_FILE, "utf-8");
+    const clean = raw.replace(/^﻿/, "");
+    if (clean.trim() === "") {
+      return {
+        dimensions: [],
+        goals: [],
+        milestones: [],
+        todos: [],
+        dailyActivity: [],
+        karma: { totalXp: 0, level: 1 },
+        streak: { current: 0, longest: 0, lastDate: null },
+        counter: { todosCompleted: 0, goalsCompleted: 0, milestonesCompleted: 0 },
+        achievements: [],
+      };
+    }
+    return JSON.parse(clean);
+  } catch (err) {
+    console.error("Database parse error:", err);
+    throw err;
+  }
 }
 function writeDb(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
@@ -68,44 +87,51 @@ function parseBody(req) {
 // --- API Handlers ---
 async function handleApi(method, url, body, res) {
   const send = (data, code = 200) => {
+    if (res.headersSent) {
+      console.warn("Response already sent, skipping duplicate send.");
+      return;
+    }
     res.writeHead(code, { "Content-Type": "application/json" });
     res.end(JSON.stringify(data));
   };
 
   const db = readDb();
-  const parts = url.split("/").filter(Boolean); // ['api', 'dimensions', ...]
+  const cleanPath = url.split('?')[0];
+  const parts = cleanPath.split('/').filter(Boolean); // ['api', 'dimensions', ...]
+
+  // GET /api/stats/activity?year=2026  (must be BEFORE /api/stats to avoid shadowing)
+  if (method === "GET" && parts[1] === "stats" && parts[2] === "activity") {
+    const urlObj = new URL(url, "http://localhost");
+    const year = parseInt(urlObj.searchParams.get("year")) || 2026;
+    return send({ year, days: db.dailyActivity });
+  }
 
   // GET /api/stats
-  if (method === "GET" && parts[1] === "stats") {
+  if (method === "GET" && parts[1] === "stats" && !parts[2]) {
     const { karma, streak, counter, achievements, dimensions, goals, todos } = db;
     const levelXp = karma.level * 100;
     const xpInLevel = karma.totalXp - ((karma.level - 1) * karma.level * 100) / 2;
     const xpForNext = levelXp;
+    const totalTodos = todos.filter((t) => !t.completed).length;
+    const todayTodos = todos.filter((t) => !t.completed && t.bucket === "today").length;
     const dimProgress = dimensions.map((d) => {
       const dimGoals = goals.filter((g) => g.dimensionId === d.id);
       const done = dimGoals.filter((g) => g.completed).length;
-      const totalTodos = todos.filter((t) => !t.completed).length;
-      const todayTodos = todos.filter((t) => !t.completed && t.bucket === "today");
       return { ...d, totalGoals: dimGoals.length, completedGoals: done, progress: dimGoals.length > 0 ? Math.round((done / dimGoals.length) * 100) : 0 };
     });
-    send({
+    return send({
       karma: { ...karma, xpInLevel, xpForNext, levelProgress: xpForNext > 0 ? Math.min(100, Math.round((xpInLevel / xpForNext) * 100)) : 0 },
       streak,
       counter,
       dimProgress,
-      todayTodos: todos.filter((t) => !t.completed && t.bucket === "today").length,
+      todayTodos,
       totalTodos,
       achievements,
       unlockedCount: achievements.filter((a) => a.unlocked).length,
     });
   }
 
-  // GET /api/stats/activity?year=2026
-  if (method === "GET" && parts[1] === "stats" && parts[2] === "activity") {
-    const urlObj = new URL(url, "http://localhost");
-    const year = parseInt(urlObj.searchParams.get("year")) || 2026;
-    send({ year, days: db.dailyActivity });
-  }
+
 
   // --- Dimensions CRUD ---
   if (parts[1] === "dimensions") {
@@ -360,15 +386,23 @@ function updateAchievements(db) {
 
 // --- Server ---
 const server = http.createServer(async (req, res) => {
-  const { method, url } = req;
-  cors(res);
-  if (method === "OPTIONS") return res.end();
+  try {
+    const { method, url } = req;
+    cors(res);
+    if (method === "OPTIONS") return res.end();
 
-  if (url.startsWith("/api/")) {
-    const body = ["POST", "PUT", "PATCH"].includes(method) ? await parseBody(req) : {};
-    await handleApi(method, url, body, res);
-  } else {
-    serveStatic(url, res);
+    if (url.startsWith("/api/")) {
+      const body = ["POST", "PUT", "PATCH"].includes(method) ? await parseBody(req) : {};
+      await handleApi(method, url, body, res);
+    } else {
+      serveStatic(url, res);
+    }
+  } catch (err) {
+    console.error("Server error:", err);
+    if (!res.headersSent) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Internal server error" }));
+    }
   }
 });
 

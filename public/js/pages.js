@@ -1,4 +1,4 @@
-﻿async function renderDashboard(container) {
+﻿async function renderDashboard(container) { try {
   const [stats, dims, todos] = await Promise.all([api.get("/stats"), api.get("/dimensions"), api.get("/todos?completed=false")]);
   const todayTodos = todos.filter(t=>t.bucket==="today");
   const act = await api.get("/stats/activity?year=2026");
@@ -16,9 +16,10 @@
   else { h += `<div>`; for (const t of todayTodos) h += renderTodoItem(t); h += `</div>`; }
   h += `<div class="add-btn" onclick="navigate('#/todos')">查看所有待办</div></div>`;
   container.innerHTML = h;
+  } catch(e) { console.error("Dashboard render error:", e); container.innerHTML = `<div class="empty-state"><div class="empty-state-text">加载失败，请刷新</div></div>`; }
 }
 
-async function renderDimDetail(container, dimId) {
+async function renderDimDetail(container, dimId) { try {
   const [dim, goals] = await Promise.all([api.get("/dimensions/"+dimId).catch(()=>null), api.get("/goals?dimensionId="+dimId)]);
   if (!dim) { container.innerHTML = '<div class="empty-state"><div class="empty-state-text">维度不存在</div></div>'; return; }
   const c = getDim(dimId);
@@ -33,9 +34,10 @@ async function renderDimDetail(container, dimId) {
     h += `</div>`;
   }
   container.innerHTML = h;
+  } catch(e) { console.error("Dashboard render error:", e); container.innerHTML = `<div class="empty-state"><div class="empty-state-text">加载失败，请刷新</div></div>`; }
 }
 
-async function renderGoalDetail(container, goalId) {
+async function renderGoalDetail(container, goalId) { try {
   const [goal, todos] = await Promise.all([api.get("/goals/"+goalId).catch(()=>null), api.get("/todos?goalId="+goalId)]);
   if (!goal) { container.innerHTML = '<div class="empty-state"><div class="empty-state-text">目标不存在</div></div>'; return; }
   const dim = await api.get("/dimensions/"+goal.dimensionId).catch(()=>null);
@@ -61,9 +63,10 @@ async function renderGoalDetail(container, goalId) {
   else { h += `<div>`; const sorted=[...todos].sort((a,b)=>a.completed-b.completed); for (const t of sorted) h+=renderTodoItem(t); h+=`</div>`; }
   h += `</div>`;
   container.innerHTML = h;
+  } catch(e) { console.error("Dashboard render error:", e); container.innerHTML = `<div class="empty-state"><div class="empty-state-text">加载失败，请刷新</div></div>`; }
 }
 
-async function renderTodoList(container) {
+async function renderTodoList(container) { try {
   const todos = await api.get("/todos");
   const buckets = ["today","anytime","someday"];
   const pending = todos.filter(t=>!t.completed).length, done=todos.filter(t=>t.completed).length;
@@ -80,9 +83,10 @@ async function renderTodoList(container) {
   }
   h+=`</div>`;
   container.innerHTML = h;
+  } catch(e) { console.error("Dashboard render error:", e); container.innerHTML = `<div class="empty-state"><div class="empty-state-text">加载失败，请刷新</div></div>`; }
 }
 
-async function renderAchPage(container) {
+async function renderAchPage(container) { try {
   const achs = await api.get("/achievements");
   const unlocked=achs.filter(a=>a.unlocked), locked=achs.filter(a=>!a.unlocked);
   let h = `<div class="page-header"><h1>成就</h1><p>已解锁 ${unlocked.length}/${achs.length}</p></div><div class="ach-grid">`;
@@ -90,4 +94,5 @@ async function renderAchPage(container) {
   for (const a of locked) h+=renderAchCard(a);
   h+=`</div>`;
   container.innerHTML = h;
+  } catch(e) { console.error("Dashboard render error:", e); container.innerHTML = `<div class="empty-state"><div class="empty-state-text">加载失败，请刷新</div></div>`; }
 }
