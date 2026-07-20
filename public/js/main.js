@@ -3,7 +3,8 @@
   const parts=hash.split("/").filter(Boolean);
   const route="/"+parts[0], params=parts.slice(1);
   const c=document.getElementById("pageContainer");
-  c.innerHTML='<div class="loading"><div class="loading-spinner"></div></div>';
+  c.classList.remove("page-enter");
+  c.innerHTML=renderSkeleton();
   document.querySelectorAll(".nav-item[data-route]").forEach(el=>el.classList.toggle("active",el.getAttribute("href")==="#"+route));
   try {
     if (route==="/dashboard") await renderDashboard(c);
@@ -11,8 +12,9 @@
     else if (route==="/goal") await renderGoalDetail(c,params[0]);
     else if (route==="/todos") await renderTodoList(c);
     else if (route==="/achievements") await renderAchPage(c);
-    else c.innerHTML='<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">页面不存在</div></div>';
-  } catch(e) { console.error(e); c.innerHTML='<div class="empty-state"><div class="empty-state-text">加载失败，请刷新</div></div>'; }
+    else c.innerHTML=renderEmpty("alert","页面不存在",null,`<button class="btn btn-primary" onclick="navigate('#/dashboard')">返回总览</button>`);
+  } catch(e) { console.error(e); c.innerHTML=renderEmpty("alert","加载失败，请刷新"); }
+  c.classList.add("page-enter");
 }
 function navigate(hash) { location.hash=hash; }
 window.addEventListener("hashchange",parseHash);
@@ -33,4 +35,13 @@ window.navigate=navigate;
 })();
 
 parseHash();
+
 window.app={closeModal:(e)=>{const o=document.getElementById("modalOverlay");if(e&&e.target!==o)return;o.classList.add("hidden");document.getElementById("modalContent").innerHTML="";}};
+
+// ESC key closes modal
+document.addEventListener("keydown",(e)=>{
+  if(e.key==="Escape"){
+    const o=document.getElementById("modalOverlay");
+    if(!o.classList.contains("hidden")) app.closeModal();
+  }
+});

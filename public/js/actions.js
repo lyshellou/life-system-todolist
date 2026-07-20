@@ -1,6 +1,8 @@
 ﻿// === Todo Actions ===
-window.toggleTodo = async (id) => { await api.patch("/todos/"+id+"/complete"); toast("✓ 已更新"); parseHash(); };
-window.deleteTodo = async (id) => { if (!confirm("确定删除？")) return; await api.del("/todos/"+id); toast("已删除"); parseHash(); };
+window.toggleTodo = async (id) => { await api.patch("/todos/"+id+"/complete"); toast("已更新"); parseHash(); };
+window.deleteTodo = async (id) => {
+  confirmAction("删除待办","确定要删除这个待办吗？",async()=>{ await api.del("/todos/"+id); toast("已删除"); parseHash(); });
+};
 window.editTodo = async (id) => { const todos=await api.get("/todos"); const t=todos.find(x=>x.id===id); if(t){const g=await api.get("/goals"); showTodoModal(t,g);} };
 window.showTodoForm = async (goalId) => { const g=await api.get("/goals"); showTodoModal(null,g,goalId); };
 
@@ -11,7 +13,7 @@ async function showTodoModal(editTodo, allGoals, presetGoalId) {
   const goalOpts=(allGoals||[]).map(g=>`<option value="${g.id}"${(editTodo&&editTodo.goalId===g.id)||(presetGoalId===g.id)?" selected":""}>${ESC(g.title)}</option>`).join("");
   const mo=document.getElementById("modalOverlay"), mc=document.getElementById("modalContent");
   mc.innerHTML=`<div class="modal-title">${title}</div>
-<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" value="${ESC(editTodo?editTodo.title:"")}" required></div>
+<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" value="${ESC(editTodo?editTodo.title:"")}" required autofocus></div>
 <div class="form-row"><div class="form-group"><label class="form-label">桶</label><select class="form-select" name="bucket">${bucketOpts}</select></div>
 <div class="form-group"><label class="form-label">优先级</label><select class="form-select" name="priority">${priorityOpts}</select></div></div>
 <div class="form-group"><label class="form-label">关联目标</label><select class="form-select" name="goalId"><option value="">无</option>${goalOpts}</select></div>
@@ -34,13 +36,15 @@ async function showTodoModal(editTodo, allGoals, presetGoalId) {
 window.toggleGoalComplete = async (id) => {
   const goal=await api.get("/goals/"+id);
   await api.put("/goals/"+id,{completed:!goal.completed,completedAt:!goal.completed?new Date().toISOString():null});
-  toast(goal.completed?"已取消完成":"目标达成！"); parseHash();
+  toast(goal.completed?"已取消完成":"目标达成"); parseHash();
 };
-window.deleteGoal = async (id) => { if(!confirm("确定删除？"))return; await api.del("/goals/"+id); toast("已删除"); parseHash(); };
+window.deleteGoal = async (id) => {
+  confirmAction("删除目标","删除后其下的里程碑和待办关联也会移除，确定吗？",async()=>{ await api.del("/goals/"+id); toast("已删除"); parseHash(); });
+};
 window.showGoalForm = (dimId) => {
   const mo=document.getElementById("modalOverlay"), mc=document.getElementById("modalContent");
   mc.innerHTML=`<div class="modal-title">新建目标</div>
-<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" required></div>
+<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" required autofocus></div>
 <div class="form-group"><label class="form-label">描述</label><textarea class="form-input form-textarea" name="description"></textarea></div>
 <div class="form-group"><label class="form-label">目标日期</label><input class="form-input" name="targetDate" type="date"></div>
 <div class="btn-group" style="margin-top:16px"><button type="submit" class="btn btn-primary btn-full">创建</button>
@@ -57,7 +61,7 @@ window.editGoal = async (id) => {
   if(!goal)return;
   const mo=document.getElementById("modalOverlay"), mc=document.getElementById("modalContent");
   mc.innerHTML=`<div class="modal-title">编辑目标</div>
-<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" value="${ESC(goal.title)}" required></div>
+<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" value="${ESC(goal.title)}" required autofocus></div>
 <div class="form-group"><label class="form-label">描述</label><textarea class="form-input form-textarea" name="description">${ESC(goal.description||"")}</textarea></div>
 <div class="form-group"><label class="form-label">目标日期</label><input class="form-input" name="targetDate" type="date" value="${goal.targetDate?goal.targetDate.slice(0,10):""}"></div>
 <div class="btn-group" style="margin-top:16px"><button type="submit" class="btn btn-primary btn-full">保存</button>
@@ -71,17 +75,17 @@ window.editGoal = async (id) => {
 };
 
 // === Milestone Actions ===
-window.toggleMilestone = async (id) => { await api.patch("/milestones/"+id+"/toggle"); toast("✓ 里程碑已更新"); parseHash(); };
+window.toggleMilestone = async (id) => { await api.patch("/milestones/"+id+"/toggle"); toast("里程碑已更新"); parseHash(); };
 window.showMilestoneForm = (goalId) => {
   const mo=document.getElementById("modalOverlay"), mc=document.getElementById("modalContent");
   mc.innerHTML=`<div class="modal-title">添加里程碑</div>
-<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" required></div>
+<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" required autofocus></div>
 <div class="btn-group" style="margin-top:16px"><button type="submit" class="btn btn-primary btn-full">添加</button>
 <button type="button" class="btn btn-secondary btn-full" onclick="app.closeModal()">取消</button></div></form>`;
   mo.classList.remove("hidden");
   document.getElementById("actionForm").onsubmit=async(e)=>{
     e.preventDefault(); const fd=new FormData(e.target); const title=fd.get("title");
-    if(!title)return; await api.post("/milestones",{goalId,title}); toast("✓ 已添加"); app.closeModal(); parseHash();
+    if(!title)return; await api.post("/milestones",{goalId,title}); toast("已添加"); app.closeModal(); parseHash();
   };
 };
 window.editMilestone = async (id) => {
@@ -90,7 +94,7 @@ window.editMilestone = async (id) => {
   if(!ms)return;
   const mo=document.getElementById("modalOverlay"), mc=document.getElementById("modalContent");
   mc.innerHTML=`<div class="modal-title">编辑里程碑</div>
-<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" value="${ESC(ms.title)}" required></div>
+<form id="actionForm"><div class="form-group"><label class="form-label">标题</label><input class="form-input" name="title" value="${ESC(ms.title)}" required autofocus></div>
 <div class="btn-group" style="margin-top:16px"><button type="submit" class="btn btn-primary btn-full">保存</button>
 <button type="button" class="btn btn-secondary btn-full" onclick="app.closeModal()">取消</button></div></form>`;
   mo.classList.remove("hidden");
@@ -99,4 +103,6 @@ window.editMilestone = async (id) => {
     if(!title)return; await api.put("/milestones/"+id,{title}); toast("已更新"); app.closeModal(); parseHash();
   };
 };
-window.deleteMilestone = async (id) => { if(!confirm("确定删除？"))return; await api.del("/milestones/"+id); toast("已删除"); parseHash(); };
+window.deleteMilestone = async (id) => {
+  confirmAction("删除里程碑","确定要删除这个里程碑吗？",async()=>{ await api.del("/milestones/"+id); toast("已删除"); parseHash(); });
+};
